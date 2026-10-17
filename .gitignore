@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build output (vite build, vite-plugin-pwa dev service worker)
+dist/
+dev-dist/
+*.tsbuildinfo
+
+# Vite cache
+node_modules/.vite/
+.vite/
+
+# Test recordings saved by the dev server (VITE_SAVE_RECORDINGS=1)
+recordings/
+
+# Test coverage
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local Claude Code settings (per machine)
+.claude/settings.local.json
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
