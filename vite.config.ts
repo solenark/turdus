@@ -49,6 +49,7 @@ export default defineConfig({
         name: 'Turdus — do canto ao MIDI',
         short_name: 'Turdus',
         description: 'Grave um canto, veja as notas e exporte em MIDI.',
+        lang: 'pt-BR',
         theme_color: '#1d1b2f',
         background_color: '#1d1b2f',
         display: 'standalone',
