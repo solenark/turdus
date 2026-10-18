@@ -1,7 +1,9 @@
 import { DEFAULT_SETTINGS, type AnalysisSettings, type VoiceProfile } from './audio/analysis';
+import { getInstrument, type InstrumentId } from './audio/instruments';
 
 const SETTINGS_KEY = 'turdus.settings.v1';
 const PROFILE_KEY = 'turdus.profile.v1';
+const INSTRUMENT_KEY = 'turdus.instrument.v1';
 
 // localStorage can fail (private tab, blocked storage): the app falls back to the defaults.
 function read<T>(key: string): T | null {
@@ -31,3 +33,6 @@ export interface StoredProfile extends VoiceProfile {
 }
 export const loadProfile = () => read<StoredProfile>(PROFILE_KEY);
 export const saveProfile = (p: StoredProfile | null) => write(PROFILE_KEY, p);
+
+export const loadInstrument = (): InstrumentId => getInstrument(read<string>(INSTRUMENT_KEY) ?? '').id;
+export const saveInstrument = (id: InstrumentId) => write(INSTRUMENT_KEY, id);

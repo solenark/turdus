@@ -15,4 +15,9 @@ describe('notesToMidi', () => {
       expect(n.duration).toBeCloseTo(notes[i].duration, 2);
     });
   });
+
+  it('sets the GM instrument program', () => {
+    const notes = [{ midi: 60, start: 0, duration: 0.5, velocity: 0.8 }];
+    expect(new Midi(notesToMidi(notes, 120, 0, 73)).tracks[0].instrument.number).toBe(73);
+  });
 });

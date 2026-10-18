@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { analyze, DETECTION_KEYS, FIT_KEYS, type AnalysisResult, type AnalysisSettings } from './audio/analysis';
+import { getInstrument, loadSamples, type InstrumentId } from './audio/instruments';
 import { detectKey, usesFlats } from './audio/music';
 import { midiToName, notesToText } from './audio/noteNames';
 import { extractFrames } from './audio/pitch';
@@ -16,7 +17,15 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { SettingsPanel } from './components/SettingsPanel';
 import { Timeline } from './components/Timeline';
 import { saveDebugMeta, uploadDebugRecording } from './debugUpload';
-import { loadDefaults, loadProfile, saveDefaults, saveProfile, type StoredProfile } from './storage';
+import {
+  loadDefaults,
+  loadInstrument,
+  loadProfile,
+  saveDefaults,
+  saveInstrument,
+  saveProfile,
+  type StoredProfile,
+} from './storage';
 
 /** Test recordings in recordings/ (npm run dev only): enable with VITE_SAVE_RECORDINGS=1. */
 const SAVE_TEST_RECORDINGS = import.meta.env.DEV && import.meta.env.VITE_SAVE_RECORDINGS === '1';
@@ -58,6 +67,8 @@ export function App() {
   const [settings, setSettings] = useState<AnalysisSettings>(defaults);
   const [edits, setEdits] = useState<Edits | null>(null);
   const [mode, setMode] = useState<PlaybackMode>('notes');
+  const [instrument, setInstrument] = useState<InstrumentId>(loadInstrument);
+  const [instrumentLoading, setInstrumentLoading] = useState(false);
   const [position, setPosition] = useState<number | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [tab, setTab] = useState<Tab>('listen');
@@ -67,6 +78,8 @@ export function App() {
   const [debugStatus, setDebugStatus] = useState<string | null>(null);
   const recorder = useRef<RecorderHandle | null>(null);
   const playback = useRef<Playback | null>(null);
+  /** Play was pressed and is waiting for the instrument's samples. */
+  const starting = useRef(false);
 
   useEffect(() => () => playback.current?.stop(), []);
 
@@ -154,10 +167,34 @@ export function App() {
     playback.current = null;
   }
 
-  function togglePlayback() {
-    if (!take) return;
+  /** The chosen instrument's samples (null = built-in synth); on a failed download, falls back to the synth. */
+  async function voice(id = instrument) {
+    if (mode === 'original') return null;
+    setInstrumentLoading(true);
+    try {
+      return await loadSamples(id);
+    } catch {
+      setError('Não foi possível carregar o instrumento (sem conexão?). Tocando com o som simples.');
+      return null;
+    } finally {
+      setInstrumentLoading(false);
+    }
+  }
+
+  function changeInstrument(id: InstrumentId) {
+    stopPlayback();
+    setError(null);
+    setInstrument(id);
+    saveInstrument(id);
+    void voice(id);
+  }
+
+  async function togglePlayback() {
+    if (!take || starting.current) return;
     if (playback.current) return stopPlayback();
-    const pb = play(notes, take.buffer, mode, () => {
+    starting.current = true;
+    const v = await voice().finally(() => (starting.current = false));
+    const pb = play(notes, take.buffer, mode, v, () => {
       playback.current = null;
       setPosition(null);
     });
@@ -173,7 +210,7 @@ export function App() {
   /** Saves what the selected playback mode plays. */
   async function exportMp3() {
     if (!take) return;
-    const [mix, { encodeMp3 }] = await Promise.all([renderMix(notes, take.buffer, mode), import('./audio/mp3')]);
+    const [mix, { encodeMp3 }] = await Promise.all([voice().then((v) => renderMix(notes, take.buffer, mode, v)), import('./audio/mp3')]);
     await saveFile(encodeMp3(mix.getChannelData(0), mix.sampleRate), 'turdus.mp3', 'audio/mpeg');
   }
 
@@ -311,7 +348,12 @@ export function App() {
                   stopPlayback();
                   setMode(m);
                 }}
-                onExport={() => saveMidi(notesToMidi(notes, settings.bpm, analysis.grid?.origin ?? 0))}
+                instrument={instrument}
+                onInstrumentChange={changeInstrument}
+                instrumentLoading={instrumentLoading}
+                onExport={() =>
+                  saveMidi(notesToMidi(notes, settings.bpm, analysis.grid?.origin ?? 0, getInstrument(instrument).program))
+                }
                 onExportMp3={exportMp3}
                 notesText={notesToText(notes, flats)}
               />

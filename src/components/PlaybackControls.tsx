@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { INSTRUMENTS, type InstrumentId } from '../audio/instruments';
 import type { PlaybackMode } from '../audio/player';
 
 const MODES: { value: PlaybackMode; label: string }[] = [
@@ -10,6 +11,10 @@ const MODES: { value: PlaybackMode; label: string }[] = [
 interface Props {
   mode: PlaybackMode;
   onModeChange(mode: PlaybackMode): void;
+  instrument: InstrumentId;
+  onInstrumentChange(id: InstrumentId): void;
+  /** The chosen instrument's samples are still downloading. */
+  instrumentLoading: boolean;
   onExport(): void;
   onExportMp3(): Promise<void>;
   /** Melody as text, e.g. "C4 Eb4 E4 F4". */
@@ -34,7 +39,16 @@ async function copyText(text: string): Promise<void> {
 }
 
 /** "Listen" tab: what to play, and export. Play/stop lives in the tab bar, always visible. */
-export function PlaybackControls({ mode, onModeChange, onExport, onExportMp3, notesText }: Props) {
+export function PlaybackControls({
+  mode,
+  onModeChange,
+  instrument,
+  onInstrumentChange,
+  instrumentLoading,
+  onExport,
+  onExportMp3,
+  notesText,
+}: Props) {
   const [encoding, setEncoding] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -69,6 +83,21 @@ export function PlaybackControls({ mode, onModeChange, onExport, onExportMp3, no
           </button>
         ))}
       </div>
+      <label className="instrument-row">
+        <span className="controls-label">Instrumento</span>
+        <select
+          value={instrument}
+          disabled={mode === 'original'}
+          onChange={(e) => onInstrumentChange(e.target.value as InstrumentId)}
+        >
+          {INSTRUMENTS.map((i) => (
+            <option key={i.id} value={i.id}>
+              {i.label}
+            </option>
+          ))}
+        </select>
+        {instrumentLoading && <span className="muted">Carregando…</span>}
+      </label>
       <div className="export-row">
         <button className="btn" onClick={onExport}>
           ⬇ Exportar MIDI

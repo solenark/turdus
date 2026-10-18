@@ -50,6 +50,17 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
+      workbox: {
+        // Instrument samples download only when chosen, then stay cached for offline use.
+        globIgnores: ['**/soundfonts/**'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.includes('/soundfonts/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'turdus-soundfonts', expiration: { maxEntries: 400 } },
+          },
+        ],
+      },
       manifest: {
         name: 'Turdus — do canto ao MIDI',
         short_name: 'Turdus',

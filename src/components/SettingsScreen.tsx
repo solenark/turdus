@@ -89,6 +89,12 @@ export function SettingsScreen({ defaults, profile, onChangeDefaults, onCalibrat
         )}
 
         <p className="muted app-version">Turdus v{__APP_VERSION__}</p>
+        <p className="muted app-credits">
+          Instrumentos: Fluid R3 GM (Frank Wen), via midi-js-soundfonts —{' '}
+          <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer">
+            CC BY 3.0
+          </a>
+        </p>
       </div>
     </div>
   );

@@ -1,0 +1,4 @@
+Instrument samples: Fluid R3 GM SoundFont (FluidR3_GM.sf2) by Frank Wen,
+pre-rendered to MP3 by Benjamin Gleitzman (https://github.com/gleitz/midi-js-soundfonts).
+Licensed under Creative Commons Attribution 3.0: https://creativecommons.org/licenses/by/3.0/us/
+Turdus ships a subset of the notes (every 3 semitones, C2-C7), unmodified.
