@@ -87,6 +87,8 @@ export function SettingsScreen({ defaults, profile, onChangeDefaults, onCalibrat
             />
           </div>
         )}
+
+        <p className="muted app-version">Turdus v{__APP_VERSION__}</p>
       </div>
     </div>
   );

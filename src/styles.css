@@ -31,6 +31,8 @@ button:disabled { opacity: 0.4; cursor: default; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: none; padding-bottom: 10px; }
 .topbar h1 { margin: 0; font-size: 1.25rem; letter-spacing: -0.01em; }
 .topbar p { margin: 2px 0 0; }
+.version { font-size: 0.7rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.app-version { text-align: center; margin: 8px 0 0; font-size: 0.75rem; }
 .debug { font-family: ui-monospace, Consolas, monospace; font-size: 0.7rem; }
 
 .record-small {
@@ -110,6 +112,8 @@ button:disabled { opacity: 0.4; cursor: default; }
 .segmented button { flex: 1; border: 0; background: none; padding: 9px; border-radius: 8px; color: var(--muted); }
 .segmented .is-active { background: var(--surface-2); color: var(--text); }
 .btn { flex: 1; border: 0; padding: 12px; border-radius: 12px; background: var(--surface-2); font-weight: 600; }
+.btn:disabled { opacity: 0.6; }
+.export-row { display: flex; gap: 8px; }
 .btn-danger { background: rgba(239, 93, 108, 0.2); color: #ffc2c8; }
 
 /* Settings: one row per control (label · slider · value) */

@@ -37,3 +37,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Tutorial video (distribution only: animation, recorder script, output and Chrome profile)
+tutorial/

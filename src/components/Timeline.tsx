@@ -19,6 +19,8 @@ interface Props {
   duration: number;
   position: number | null;
   selected: number | null;
+  /** Spell accidentals as flats (Eb) instead of sharps (D#). */
+  flats: boolean;
   onSelect(index: number | null): void;
 }
 
@@ -50,7 +52,7 @@ function useSize<T extends HTMLElement>() {
   return [ref, size] as const;
 }
 
-export function Timeline({ notes, frames, grid, duration, position, selected, onSelect }: Props) {
+export function Timeline({ notes, frames, grid, duration, position, selected, flats, onSelect }: Props) {
   const [box, size] = useSize<HTMLDivElement>();
   const scroller = useRef<HTMLDivElement>(null);
   const [zoomed, setZoomed] = useState(false);
@@ -109,7 +111,7 @@ export function Timeline({ notes, frames, grid, duration, position, selected, on
                 fontSize={labelSize}
                 className={sungRows.has(m) ? 'label-sung' : m % 12 === 0 ? 'label-c' : ''}
               >
-                {midiToName(m)}
+                {midiToName(m, flats)}
               </text>
             ))}
           </svg>

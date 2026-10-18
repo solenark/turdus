@@ -13,11 +13,25 @@ const SCALE_STEPS: Record<ScaleType, number[]> = {
   minor: [0, 2, 3, 5, 7, 8, 10],
 };
 
-const ROOT_NAMES = ['Dó', 'Dó#', 'Ré', 'Ré#', 'Mi', 'Fá', 'Fá#', 'Sol', 'Sol#', 'Lá', 'Lá#', 'Si'];
-export const ROOT_OPTIONS = ROOT_NAMES.map((name, root) => ({ root, name }));
+// Keys written with flats in the key signature (F, Bb, Eb, Ab, Db major and their relative minors).
+const FLAT_MAJOR_ROOTS = [5, 10, 3, 8, 1];
+
+/** Whether accidentals in this key are spelled as flats (Eb) rather than sharps (D#). */
+export function usesFlats(key: Key): boolean {
+  const major = key.type === 'major' ? key.root : (key.root + 3) % 12;
+  return FLAT_MAJOR_ROOTS.includes(major);
+}
+
+const ROOT_SHARPS = ['Dó', 'Dó#', 'Ré', 'Ré#', 'Mi', 'Fá', 'Fá#', 'Sol', 'Sol#', 'Lá', 'Lá#', 'Si'];
+const ROOT_FLATS = ['Dó', 'Réb', 'Ré', 'Mib', 'Mi', 'Fá', 'Solb', 'Sol', 'Láb', 'Lá', 'Sib', 'Si'];
+/** Black keys show both spellings, since the mode (major/minor) is picked separately. */
+export const ROOT_OPTIONS = ROOT_SHARPS.map((name, root) => ({
+  root,
+  name: name === ROOT_FLATS[root] ? name : `${name}/${ROOT_FLATS[root]}`,
+}));
 
 export function keyName(key: Key): string {
-  return `${ROOT_NAMES[key.root]} ${key.type === 'major' ? 'maior' : 'menor'}`;
+  return `${(usesFlats(key) ? ROOT_FLATS : ROOT_SHARPS)[key.root]} ${key.type === 'major' ? 'maior' : 'menor'}`;
 }
 
 const pc = (midi: number) => ((Math.round(midi) % 12) + 12) % 12;

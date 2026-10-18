@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { analyze, DETECTION_KEYS, FIT_KEYS, type AnalysisResult, type AnalysisSettings } from './audio/analysis';
-import { midiToName } from './audio/noteNames';
+import { detectKey, usesFlats } from './audio/music';
+import { midiToName, notesToText } from './audio/noteNames';
 import { extractFrames } from './audio/pitch';
-import { play, type Playback, type PlaybackMode } from './audio/player';
+import { play, renderMix, type Playback, type PlaybackMode } from './audio/player';
 import { startRecording, type RecorderHandle } from './audio/recorder';
 import type { Note, RawFrame } from './audio/types';
 import { notesToMidi, saveMidi } from './midi/export';
+import { saveFile } from './saveFile';
 import { PlaybackControls } from './components/PlaybackControls';
 import { RecordButton, RecordButtonSmall } from './components/RecordButton';
 import { Calibration } from './components/Calibration';
@@ -71,6 +73,8 @@ export function App() {
   const analysis = useMemo(() => (take ? analyze(take.raw, settings, profile ?? {}) : null), [take, settings, profile]);
   const hasEdits = !!analysis && edits?.base === analysis;
   const notes = analysis ? (hasEdits ? edits!.notes : analysis.notes) : [];
+  /** Note spelling follows the key: the fitted one, or else the one the notes suggest. */
+  const flats = useMemo(() => usesFlats(analysis?.key ?? detectKey(notes) ?? { root: 0, type: 'major' }), [analysis, notes]);
 
   // Test recording: the .json follows the settings and edits currently on screen.
   useEffect(() => {
@@ -166,6 +170,13 @@ export function App() {
     requestAnimationFrame(tick);
   }
 
+  /** Saves what the selected playback mode plays. */
+  async function exportMp3() {
+    if (!take) return;
+    const [mix, { encodeMp3 }] = await Promise.all([renderMix(notes, take.buffer, mode), import('./audio/mp3')]);
+    await saveFile(encodeMp3(mix.getChannelData(0), mix.sampleRate), 'turdus.mp3', 'audio/mpeg');
+  }
+
   function editSelected(change: 'up' | 'down' | 'delete') {
     if (!analysis || selected === null) return;
     stopPlayback();
@@ -224,7 +235,7 @@ export function App() {
     <div className={`app${showResult ? ' has-result' : ''}`}>
       <header className="topbar">
         <div>
-          <h1>Turdus</h1>
+          <h1>Turdus <span className="version">v{__APP_VERSION__}</span></h1>
           {showResult ? (
             <p className="muted">
               {notes.length} notas · {take.buffer.duration.toFixed(1)}s
@@ -251,6 +262,7 @@ export function App() {
             notes={notes}
             frames={analysis.frames}
             grid={analysis.grid}
+            flats={flats}
             duration={take.buffer.duration}
             position={position}
             selected={selected}
@@ -300,6 +312,8 @@ export function App() {
                   setMode(m);
                 }}
                 onExport={() => saveMidi(notesToMidi(notes, settings.bpm, analysis.grid?.origin ?? 0))}
+                onExportMp3={exportMp3}
+                notesText={notesToText(notes, flats)}
               />
             )}
             {tab === 'settings' && (
@@ -324,7 +338,7 @@ export function App() {
             {tab === 'note' && sel && (
               <div className="note-editor">
                 <div className="note-info">
-                  <strong>{midiToName(sel.midi)}</strong>
+                  <strong>{midiToName(sel.midi, flats)}</strong>
                   <span className="muted">
                     {sel.start.toFixed(2)}s · {(sel.duration * 1000).toFixed(0)} ms
                   </span>
